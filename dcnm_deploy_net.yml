@@ -1,0 +1,97 @@
+---
+- name: DCNM playbook for Network deployment
+  hosts: dcnm
+  gather_facts: false
+  collections:
+    - cisco.dcnm
+  vars_files:
+    - vars.yml
+
+  vars_prompt:
+  - name: "vrf_name"
+    prompt: "Name of VRF the Network is attached to ?"
+    default: production
+    private: no
+  - name: "net_name"
+    prompt: "Name of the Network ?"
+    default: production-segment-101
+    private: no    
+  - name: "net_vnid"
+    prompt: "VNID of the Network ?"
+    default: 100101
+    private: no    
+  - name: "net_vlan"
+    prompt: "VLAN-ID of the Network ?"
+    default: 101
+    private: no
+  - name: "net_gw"
+    prompt: "IPv4 Gateway of the Network ?"
+    default: 10.101.0.254/24
+    private: no
+
+  tasks:
+    - name: create DCNM Network
+      dcnm_network:
+        fabric: "{{ msd_fabric_name }}"
+        config:
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            net_id: "{{ net_vnid }}"
+            vlan_id: "{{ net_vlan }}"
+            gw_ip_subnet: "{{ net_gw}}"
+
+    - name: attach DCNM network to Site-1 BGWs
+      dcnm_network:
+        fabric: "{{ site1_fabric_name }}"
+        config: 
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            net_id: "{{ net_vnid }}"
+            vlan_id: "{{ net_vlan }}"
+            gw_ip_subnet: "{{ net_gw}}"
+            attach:
+              - ip_address: "{{ item.ip }}"
+                ports: []
+      loop: "{{ site1_bgws }}"
+
+    - name: attach DCNM network to Site-1 Leaf nodes
+      dcnm_network:
+        fabric: "{{ site1_fabric_name }}"
+        config: 
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            net_id: "{{ net_vnid }}"
+            vlan_id: "{{ net_vlan }}"
+            gw_ip_subnet: "{{ net_gw}}"
+            attach:
+              - ip_address: "{{ item.ip }}"
+                ports: ["{{ item.int_list }}"]
+      loop: "{{ site1_leafs }}"
+
+    - name: attach DCNM network to Site-2 BGWs
+      dcnm_network:
+        fabric: "{{ site2_fabric_name }}"
+        config: 
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            net_id: "{{ net_vnid }}"
+            vlan_id: "{{ net_vlan }}"
+            gw_ip_subnet: "{{ net_gw}}"
+            attach:
+              - ip_address: "{{ item.ip }}"
+                ports: []
+      loop: "{{ site2_bgws }}"
+
+    - name: attach DCNM network to Site-2 Leaf nodes
+      dcnm_network:
+        fabric: "{{ site2_fabric_name }}"
+        config: 
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            net_id: "{{ net_vnid }}"
+            vlan_id: "{{ net_vlan }}"
+            gw_ip_subnet: "{{ net_gw}}"
+            attach:
+              - ip_address: "{{ item.ip }}"
+                ports: ["{{ item.int_list }}"]
+      loop: "{{ site2_leafs }}"

@@ -1,0 +1,80 @@
+---
+- name: DCNM playbook for VRF suppression
+  hosts: dcnm
+  gather_facts: false
+  collections:
+    - cisco.dcnm
+  # vars_files:
+  #   - vars.yml
+
+  vars:
+    msd_fabric_name: Multi-Site
+
+    site1_fabric_name: Site-1
+    site1_leafs:
+      - ip: 192.168.123.111
+      # - ip: 192.168.123.112
+    site1_bgws:
+      - ip: 192.168.123.121
+      - ip: 192.168.123.123
+
+    site2_fabric_name: Site-2
+    site2_leafs:
+      - ip: 192.168.123.113
+      # - ip: 192.168.123.114
+    site2_bgws:
+      - ip: 192.168.123.122
+
+  vars_prompt:
+  - name: "vrf_name"
+    prompt: "Name of VRF to delete ?"
+    default: production
+    private: no
+
+  tasks:
+    - name: detach DCNM VRF from Site-1 Leaf nodes
+      dcnm_vrf:
+        fabric: "{{ site1_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            deploy: false
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site1_leafs }}" 
+
+    - name: detach DCNM VRF from Site-1 BGWs
+      dcnm_vrf:
+        fabric: "{{ site1_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            deploy: false
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site1_bgws }}"
+
+    - name: detach DCNM VRF from Site-2 Leaf nodes
+      dcnm_vrf:
+        fabric: "{{ site2_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            deploy: false
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site2_leafs }}" 
+
+    - name: detach DCNM VRF from Site-2 BGWs
+      dcnm_vrf:
+        fabric: "{{ site2_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            deploy: false
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site2_bgws }}"
+
+    - name: delete dcnm vrf
+      cisco.dcnm.dcnm_vrf:
+        fabric: "{{ msd_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+        state: deleted

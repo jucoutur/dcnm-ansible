@@ -1,0 +1,34 @@
+---
+# DCNM Ansible demo variables
+# update accordingly
+
+msd_fabric_name: Multi-Site
+
+site1_fabric_name: Site-1
+site1_leafs:
+  - ip: 192.168.123.111
+    int_list: Ethernet1/31
+  - ip: 192.168.123.112
+    int_list: Ethernet1/32
+site1_bgws:
+  - ip: 192.168.123.121
+  - ip: 192.168.123.123
+
+site2_fabric_name: Site-2
+site2_leafs:
+  - ip: 192.168.123.113
+    int_list: Ethernet1/31
+  - ip: 192.168.123.114
+    int_list: Ethernet1/32
+site2_bgws:
+  - ip: 192.168.123.122
+
+
+### Vars for creating multiple VRFs
+# vrf:
+#   - vrf_name: MyVRF-123
+#     vrf_id: 100123
+#     vlan_id: 123
+#   - vrf_name: MyVRF-456
+#     vrf_id: 100456
+#     vlan_id: 456

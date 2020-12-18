@@ -1,0 +1,76 @@
+---
+- name: DCNM playbook for Network suppression
+  hosts: dcnm
+  gather_facts: false
+  collections:
+    - cisco.dcnm
+  vars_files:
+    - vars.yml
+
+  vars_prompt:
+  - name: "net_name"
+    prompt: "Name of Network to delete ?"
+    default: production-segment-101
+    private: no
+  - name: "vrf_name"
+    prompt: "Name of VRF the Network is attached to ?"
+    default: production
+    private: no
+
+  tasks:
+
+    - name: detach DCNM Network from Site-1 Leaf nodes
+      dcnm_network:
+        fabric: "{{ site1_fabric_name }}"
+        config:
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            attach:
+            - ip_address: "{{ item.ip }}"
+              ports: ["{{ item.int_list }}"]
+              deploy: false
+      loop: "{{ site1_leafs }}"
+
+    - name: detach DCNM Network from Site-1 BGWs
+      dcnm_network:
+        fabric: "{{ site1_fabric_name }}"
+        config:
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            attach:
+            - ip_address: "{{ item.ip }}"
+              ports: []
+              deploy: false
+      loop: "{{ site1_bgws }}"
+
+    - name: detach DCNM Network from Site-2 Leaf nodes
+      dcnm_network:
+        fabric: "{{ site2_fabric_name }}"
+        config:
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            attach:
+            - ip_address: "{{ item.ip }}"
+              ports: ["{{ item.int_list }}"]
+              deploy: false
+      loop: "{{ site2_leafs }}"
+
+    - name: detach DCNM Network from Site-2 BGWs
+      dcnm_network:
+        fabric: "{{ site2_fabric_name }}"
+        config:
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+            attach:
+            - ip_address: "{{ item.ip }}"
+              ports: []
+              deploy: false
+      loop: "{{ site2_bgws }}"
+
+    - name: delete DCNM Network
+      dcnm_network:
+        fabric: "{{ msd_fabric_name }}"
+        config:
+          - net_name: "{{ net_name }}"
+            vrf_name: "{{ vrf_name }}"
+        state: deleted

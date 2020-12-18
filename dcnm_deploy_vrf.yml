@@ -1,0 +1,71 @@
+---
+- name: DCNM playbook for VRF deployment
+  hosts: dcnm
+  gather_facts: false
+  collections:
+    - cisco.dcnm
+  vars_files:
+    - vars.yml
+
+  vars_prompt:
+  - name: "vrf_name"
+    prompt: "VRF name ?"
+    default: production
+    private: no
+  - name: "vrf_id"
+    prompt: "VRF VNID ?"
+    default: 100100
+    private: no
+  - name: "vrf_vlan_id"
+    prompt: "VRF VLAN ID ?"
+    default: 100
+    private: no
+
+  tasks:
+    - name: create DCNM VRF
+      dcnm_vrf:
+        fabric: "{{ msd_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            vrf_id: "{{ vrf_id }}"
+            vlan_id: "{{ vrf_vlan_id }}"
+
+    - name: deploy DCNM VRF to Site-1 BGWs
+      dcnm_vrf:
+        fabric: "{{ site1_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            vlan_id: "{{ vrf_vlan_id }}"    
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site1_bgws }}"
+
+    - name: deploy DCNM VRF to Site-1 Leaf nodes
+      dcnm_vrf:
+        fabric: "{{ site1_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            vlan_id: "{{ vrf_vlan_id }}"
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site1_leafs }}"  
+
+    - name: deploy DCNM VRF to Site-2 BGWs
+      dcnm_vrf:
+        fabric: "{{ site2_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            vlan_id: "{{ vrf_vlan_id }}"    
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site2_bgws }}"
+
+    - name: deploy DCNM VRF to Site-2 Leaf nodes
+      dcnm_vrf:
+        fabric: "{{ site2_fabric_name }}"
+        config:
+          - vrf_name: "{{ vrf_name }}"
+            vlan_id: "{{ vrf_vlan_id }}"
+            attach:
+            - ip_address: "{{ item.ip }}"
+      loop: "{{ site2_leafs }}"
